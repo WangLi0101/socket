@@ -19,25 +19,26 @@ export interface InterServerEvents {
 }
 
 export interface SocketData {
+  userId: string;
   connectedAt: Date;
 }
 
+export interface CallbackPayload {
+  code: number;
+  payload?: any;
+}
+
+export type CallBack = (_data: CallbackPayload) => void;
 // 消息包装器接口
+
 export interface MessageWrapper {
   type: string;
-  payload: unknown;
+  payload: any;
+  callback?: CallBack;
 }
 
 // 消息类型定义
 export type MessageType = 'text' | 'system' | 'error' | 'notification';
-
-// 不同类型消息的载荷接口
-export interface TextMessagePayload {
-  id: string;
-  socketId: string;
-  message: string;
-  timestamp: Date;
-}
 
 export interface SystemMessagePayload {
   message: string;
@@ -56,11 +57,6 @@ export interface NotificationPayload {
   timestamp: Date;
 }
 
-// 客户端发送的消息载荷
-export interface SendTextMessagePayload {
-  message: string;
-}
-
 // 工具类型
 export type SocketEventHandler<T = unknown> = (
   _data: T,
@@ -68,4 +64,10 @@ export type SocketEventHandler<T = unknown> = (
 
 export interface ConnectionInfo {
   totalConnections: number;
+}
+
+export interface MessagePayload {
+  type: string;
+  receiverId: string;
+  data: string;
 }

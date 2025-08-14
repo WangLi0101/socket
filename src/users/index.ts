@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   userName: string;
+  isOnline: boolean;
 }
 const map = new Map<string, User>();
 
@@ -17,5 +18,14 @@ export function getUser(id: string): User | undefined {
 }
 
 export function getUsers(): User[] {
-  return Array.from(map.values());
+  const users = Array.from(map.values());
+  return users;
+}
+
+export function updateOnlineStatus(id: string, isOnline: boolean): void {
+  const user = map.get(id);
+  if (user) {
+    user.isOnline = isOnline;
+    map.set(id, user);
+  }
 }

@@ -25,7 +25,7 @@ export function validateEnv(): {
   corsOrigin: string | string[];
 } {
   const port = parseInt(process.env.PORT || '3000', 10);
-  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+  const corsOrigin = process.env.CORS_ORIGIN || '*';
 
   if (isNaN(port) || port < 1 || port > 65535) {
     throw new Error('Invalid PORT environment variable');
