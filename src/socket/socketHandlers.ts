@@ -12,7 +12,9 @@ import type {
   SocketData,
   TextMessagePayload,
 } from '@/types/socket.js';
-import { createSystemMessage, generateMessageId } from '../utils/helpers.js';
+import { generateMessageId } from '../utils/helpers.js';
+import type { User } from '@/users/index.js';
+import { addUser, getUsers, removeUser } from '@/users/index.js';
 
 type TypedSocket = Socket<
   ClientToServerEvents,
@@ -33,21 +35,12 @@ type TypedServer = Server<
  */
 export function handleConnection(socket: TypedSocket, io: TypedServer): void {
   console.log(`Client connected: ${socket.id}`);
-
-  // 初始化 socket 数据
-  socket.data = {
-    connectedAt: new Date(),
-  };
-
-  // 向所有客户端发送连接数
-  emitConnectionCount(io);
-
-  // 发送系统消息通知新用户连接
-  const welcomeMessage = createSystemMessage(`用户 ${socket.id} 已连接`);
-  socket.broadcast.emit('message', welcomeMessage);
-
+  // 处理链接成功
+  const user = { id: socket.id, userName: socket.handshake.auth.userName };
+  handlerConnection(socket, user);
   // 设置事件处理器
   setupMessageHandlers(socket, io);
+  // 处理断开连接
   setupDisconnectionHandler(socket, io);
 }
 
@@ -69,6 +62,40 @@ function setupMessageHandlers(socket: TypedSocket, _io: TypedServer): void {
       console.error('Error handling message:', error);
     }
   });
+}
+
+/**
+ * 设置断开连接处理器
+ */
+function setupDisconnectionHandler(
+  socket: TypedSocket,
+  _io: TypedServer,
+): void {
+  socket.on('disconnect', () => {
+    try {
+      handlerDisconnection(socket);
+    } catch (error) {
+      console.error('Error handling disconnection:', error);
+    }
+  });
+}
+
+/**
+ * 处理连接
+ */
+function handlerConnection(socket: TypedSocket, user: User) {
+  // 存储user
+  addUser(socket.id, user);
+  socket.broadcast.emit('message', { type: 'getUsers', payload: getUsers() });
+}
+
+/**
+ * 处理断开连接
+ */
+function handlerDisconnection(socket: TypedSocket) {
+  // 删除user
+  removeUser(socket.id);
+  socket.broadcast.emit('message', { type: 'getUsers', payload: getUsers() });
 }
 
 /**
@@ -100,34 +127,4 @@ function handleTextMessage(
   // 广播给所有连接的客户端（除了发送者）
   socket.broadcast.emit('message', messageWrapper);
   console.log(`Broadcast message by ${socket.id}: ${message}`);
-}
-
-/**
- * 设置断开连接处理器
- */
-function setupDisconnectionHandler(socket: TypedSocket, io: TypedServer): void {
-  socket.on('disconnect', (reason: string) => {
-    try {
-      console.log(`Client disconnected: ${socket.id} - Reason: ${reason}`);
-
-      // 发送系统消息通知用户断开连接
-      const disconnectMessage = createSystemMessage(
-        `用户 ${socket.id} 已断开连接`,
-      );
-      socket.broadcast.emit('message', disconnectMessage);
-
-      // 发送更新的连接数
-      emitConnectionCount(io);
-    } catch (error) {
-      console.error('Error handling disconnection:', error);
-    }
-  });
-}
-
-/**
- * 向所有客户端发送当前连接数
- */
-function emitConnectionCount(io: TypedServer): void {
-  const count = io.engine.clientsCount;
-  io.emit('connection-count', count);
 }

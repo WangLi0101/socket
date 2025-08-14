@@ -1,6 +1,6 @@
 export interface User {
   id: string;
-  name: string;
+  userName: string;
 }
 const map = new Map<string, User>();
 
