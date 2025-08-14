@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket.IO Client Example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+      .connected {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .disconnected {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .messages {
+        height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin: 10px 0;
+        background-color: #fafafa;
+      }
+      .message {
+        margin: 5px 0;
+        padding: 5px;
+        border-left: 3px solid #007bff;
+        background-color: white;
+      }
+      .input-group {
+        display: flex;
+        margin: 10px 0;
+      }
+      .input-group input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px 0 0 4px;
+      }
+      .input-group button {
+        padding: 8px 16px;
+        border: 1px solid #007bff;
+        background-color: #007bff;
+        color: white;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+      }
+      .input-group button:hover {
+        background-color: #0056b3;
+      }
+
+      .info {
+        background-color: #e7f3ff;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Socket.IO Client Example</h1>
+
+      <div id="status" class="status disconnected">Disconnected</div>
+
+      <div class="info">
+        <strong>Connection Count:</strong> <span id="connectionCount">0</span>
+      </div>
+
+      <div class="input-group">
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Type your message..."
+          onkeypress="handleKeyPress(event)"
+        />
+        <button onclick="sendMessage()">Send Message</button>
+      </div>
+
+      <div class="messages" id="messages"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+      // 连接到 Socket.IO 服务器
+      const socket = io('http://localhost:3000');
+
+      // 连接状态
+      socket.on('connect', () => {
+        updateStatus('Connected', true);
+        addMessage('System', 'Connected to server', 'system');
+      });
+
+      socket.on('disconnect', () => {
+        updateStatus('Disconnected', false);
+        addMessage('System', 'Disconnected from server', 'system');
+      });
+
+      // 连接数
+      socket.on('connection-count', count => {
+        document.getElementById('connectionCount').textContent = count;
+      });
+
+      // 消息事件
+      socket.on('message', data => {
+        handleIncomingMessage(data);
+      });
+
+      // UI 函数
+      function updateStatus(text, connected) {
+        const statusEl = document.getElementById('status');
+        statusEl.textContent = text;
+        statusEl.className = `status ${connected ? 'connected' : 'disconnected'}`;
+      }
+
+      function addMessage(sender, message, type = 'message') {
+        const messagesEl = document.getElementById('messages');
+        const messageEl = document.createElement('div');
+        messageEl.className = 'message';
+
+        const timestamp = new Date().toLocaleTimeString();
+
+        messageEl.innerHTML = `
+                <strong>${sender}</strong>
+                <small>(${timestamp})</small><br>
+                ${message}
+            `;
+
+        if (type === 'system') {
+          messageEl.style.borderLeftColor = '#28a745';
+          messageEl.style.backgroundColor = '#f8fff9';
+        }
+
+        messagesEl.appendChild(messageEl);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      // 处理接收到的消息
+      function handleIncomingMessage(data) {
+        switch (data.type) {
+          case 'text':
+            const payload = data.payload;
+            addMessage(payload.socketId, payload.message, 'message');
+            break;
+          case 'system':
+            const systemPayload = data.payload;
+            addMessage('System', systemPayload.message, 'system');
+            break;
+          case 'error':
+            const errorPayload = data.payload;
+            addMessage('Error', errorPayload.message, 'error');
+            break;
+          default:
+            console.log('Unknown message type:', data.type);
+        }
+      }
+
+      function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+
+        if (message) {
+          // 发送包装后的消息
+          const messageWrapper = {
+            type: 'text',
+            payload: {
+              message: message,
+            },
+          };
+
+          socket.emit('message', messageWrapper);
+
+          // 显示自己的消息
+          addMessage('You', message, 'message');
+
+          messageInput.value = '';
+        }
+      }
+
+      function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      }
+    </script>
+  </body>
+</html>
