@@ -2,7 +2,7 @@
  * 主要类型定义导出
  */
 
-export * from './socket.js';
+export * from './socket';
 
 // 服务器配置类型
 export interface ServerConfig {

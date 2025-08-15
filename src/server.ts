@@ -11,7 +11,10 @@ import type {
   ServerToClientEvents,
   SocketData,
 } from './types/socket';
-import { handleConnection } from './socket/socketHandlers';
+import {
+  handleConnection,
+  initCleanupScheduler,
+} from './socket/socketHandlers';
 import { validateEnv } from './utils/helpers';
 
 /**
@@ -117,6 +120,9 @@ export function startServer(): {
     );
     console.log(`🌐 CORS enabled for: ${JSON.stringify(corsOrigin)}`);
     console.log(`⚡ Server started at ${new Date().toISOString()}`);
+
+    // 启动定时清理任务
+    initCleanupScheduler();
   });
 
   // 优雅关闭

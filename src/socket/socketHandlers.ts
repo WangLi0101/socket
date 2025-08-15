@@ -22,8 +22,9 @@ import {
   getUsers,
   updateNewMessageStatus,
   updateOnlineStatus,
+  removeUser,
 } from '../users/index';
-import { addMessage, getMessages } from '../message/index';
+import { addMessage, getMessages, deleteMessage } from '../message/index';
 
 type TypedSocket = Socket<
   ClientToServerEvents,
@@ -254,5 +255,55 @@ function handlerCallControl(socket: TypedSocket, payload: CallControlPayload) {
       action,
       senderId: socket.data.userId,
     },
+  });
+}
+
+/**
+ * 清理离线用户和相关聊天记录
+ */
+function cleanupOfflineUsersAndMessages(): void {
+  try {
+    const users = getUsers();
+    const offlineUsers = users.filter(user => !user.isOnline);
+
+    console.log(`开始清理 ${offlineUsers.length} 个离线用户及其聊天记录`);
+
+    offlineUsers.forEach(user => {
+      // 删除用户的聊天记录
+      deleteMessage(user.id);
+      // 删除用户
+      removeUser(user.id);
+      console.log(`已清理用户: ${user.userName} (${user.id})`);
+    });
+
+    console.log(`清理完成，清理了 ${offlineUsers.length} 个离线用户`);
+  } catch (error) {
+    console.error('清理离线用户时发生错误:', error);
+  }
+}
+
+/**
+ * 初始化定时清理任务
+ */
+export function initCleanupScheduler(): void {
+  // 每小时执行一次清理任务 (3600000 毫秒 = 1小时)
+  const cleanupInterval = setInterval(() => {
+    console.log('执行定时清理任务...');
+    cleanupOfflineUsersAndMessages();
+  }, 3600000);
+
+  console.log('定时清理任务已启动，每小时执行一次');
+
+  // 确保在进程退出时清理定时器
+  process.on('SIGINT', () => {
+    console.log('正在停止定时清理任务...');
+    clearInterval(cleanupInterval);
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('正在停止定时清理任务...');
+    clearInterval(cleanupInterval);
+    process.exit(0);
   });
 }

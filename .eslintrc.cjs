@@ -4,10 +4,7 @@ module.exports = {
     node: true,
     es2022: true,
   },
-  extends: [
-    'eslint:recommended',
-    'prettier',
-  ],
+  extends: ['eslint:recommended', 'prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2022,
@@ -38,24 +35,15 @@ module.exports = {
     'template-curly-spacing': 'error',
     'arrow-spacing': 'error',
     'comma-dangle': ['error', 'always-multiline'],
-    'semi': ['error', 'always'],
-    'quotes': ['error', 'single', { avoidEscape: true }],
-    'indent': 'off', // Handled by Prettier
+    semi: ['error', 'always'],
+    quotes: ['error', 'single', { avoidEscape: true }],
+    indent: 'off', // Handled by Prettier
     'linebreak-style': ['error', 'unix'],
     'eol-last': ['error', 'always'],
     'no-trailing-spaces': 'error',
     'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1 }],
 
     // Import/export rules
-    'sort-imports': [
-      'error',
-      {
-        ignoreCase: false,
-        ignoreDeclarationSort: true,
-        ignoreMemberSort: false,
-        memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
-      },
-    ],
   },
   ignorePatterns: [
     'dist/',
