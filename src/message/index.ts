@@ -20,13 +20,14 @@ export const addMessage = (message: MessagePayload) => {
     const { senderId, receiverId } = message;
     const key = getConversationId(senderId, receiverId);
     const messages = messageMap.get(key) || [];
-    messages.push({
+    const item = {
       ...message,
       id: generateMessageId(),
       createTime: new Date().toISOString(),
-    });
+    };
+    messages.push(item);
     messageMap.set(key, messages);
-    resolve(message);
+    resolve(item);
   });
 };
 

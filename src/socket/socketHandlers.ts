@@ -133,14 +133,14 @@ async function handlerChatMessage(
     senderId: socket.data.userId,
     ...data,
   };
-  await addMessage(message);
+  const res = await addMessage(message);
   updateNewMessageStatus(receiverId, true);
   const messageWrapper: MessageWrapper = {
     type: 'chat',
-    payload: message,
+    payload: res,
   };
   if (callback) {
-    callback({ code: 0, payload: message });
+    callback({ code: 0, payload: res });
   }
 
   socket.to(receiverId).emit('message', messageWrapper);
