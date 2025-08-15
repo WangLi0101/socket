@@ -6,16 +6,13 @@ yarn-error.log*
 pnpm-debug.log*
 pnpm-lock.yaml
 
-# 构建输出（保留dist目录，因为需要在容器中构建）
-# dist/
+# 构建输出（在多阶段构建中不需要复制dist）
+dist/
 build/
 
 # 环境文件
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env*
+!.env.example
 
 # IDE 和编辑器
 .vscode/
@@ -36,10 +33,16 @@ Thumbs.db
 # Git
 .git/
 .gitignore
+.gitattributes
 
 # 测试
 coverage/
 .nyc_output/
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.*
 
 # 日志
 logs/
@@ -52,12 +55,23 @@ temp/
 # Docker
 docker-compose*.yml
 .dockerignore
+Dockerfile*
 
 # 文档
 README.md
 PROJECT_OVERVIEW.md
 docs/
+*.md
 
-# 其他
+# 配置文件（开发时用）
 .eslintrc*
 .prettierrc*
+# tsconfig.json  # 构建时需要这个文件
+rollup.config.*
+jest.config.*
+.editorconfig
+
+# 其他开发文件
+.github/
+scripts/
+examples/
