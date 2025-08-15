@@ -4,11 +4,15 @@
 
 import type { Server, Socket } from 'socket.io';
 import type {
+  AnswerPayload,
   CallBack,
+  CallControlPayload,
   ChatPayload,
   ClientToServerEvents,
+  IceCandidatePayload,
   InterServerEvents,
   MessageWrapper,
+  OfferPayload,
   ServerToClientEvents,
   SocketData,
 } from '@/types/socket.js';
@@ -68,6 +72,18 @@ function setupMessageHandlers(socket: TypedSocket, _io: TypedServer): void {
           break;
         case 'getMessages':
           handlerGetMessages(socket, data.payload as string);
+          break;
+        case 'offer':
+          handlerOffer(socket, payload as OfferPayload);
+          break;
+        case 'answer':
+          handlerAnswer(socket, payload as AnswerPayload);
+          break;
+        case 'ice-candidate':
+          handlerIceCandidate(socket, payload as IceCandidatePayload);
+          break;
+        case 'call-control':
+          handlerCallControl(socket, payload as CallControlPayload);
           break;
         default:
           console.log(`Unknown message type: ${data.type}`);
@@ -165,5 +181,78 @@ async function handlerGetMessages(socket: TypedSocket, userId: string) {
   socket.emit('message', {
     type: 'getMessages',
     payload: messages,
+  });
+}
+
+/**
+ * 处理WebRTC offer事件
+ */
+function handlerOffer(socket: TypedSocket, payload: OfferPayload) {
+  const { receiverId, offer } = payload;
+  console.log(`转发 offer 从 ${socket.data.userId} 到 ${receiverId}`);
+
+  // 转发offer给接收者
+  socket.to(receiverId).emit('message', {
+    type: 'offer',
+    payload: {
+      offer,
+      senderId: socket.data.userId,
+    },
+  });
+}
+
+/**
+ * 处理WebRTC answer事件
+ */
+function handlerAnswer(socket: TypedSocket, payload: AnswerPayload) {
+  const { receiverId, answer } = payload;
+  console.log(`转发 answer 从 ${socket.data.userId} 到 ${receiverId}`);
+
+  // 转发answer给接收者
+  socket.to(receiverId).emit('message', {
+    type: 'answer',
+    payload: {
+      answer,
+      senderId: socket.data.userId,
+    },
+  });
+}
+
+/**
+ * 处理WebRTC ICE candidate事件
+ */
+function handlerIceCandidate(
+  socket: TypedSocket,
+  payload: IceCandidatePayload,
+) {
+  const { receiverId, candidate } = payload;
+  console.log(`转发 ICE candidate 从 ${socket.data.userId} 到 ${receiverId}`);
+
+  // 转发ICE candidate给接收者
+  socket.to(receiverId).emit('message', {
+    type: 'ice-candidate',
+    payload: {
+      candidate,
+      senderId: socket.data.userId,
+    },
+  });
+}
+
+/**
+ * 处理呼叫控制事件（接听、拒绝、挂断）
+ */
+function handlerCallControl(socket: TypedSocket, payload: CallControlPayload) {
+  const { receiverId, action } = payload;
+  console.log(
+    `转发呼叫控制 ${action} 从 ${socket.data.userId} 到 ${receiverId}`,
+  );
+
+  // 转发呼叫控制事件给接收者
+  socket.to(receiverId).emit('message', {
+    type: 'call-control',
+    payload: {
+      action,
+      senderId: socket.data.userId,
+    },
   });
 }

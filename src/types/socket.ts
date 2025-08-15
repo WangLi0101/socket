@@ -2,6 +2,21 @@
  * 应用程序的 Socket.IO 类型定义
  */
 
+// WebRTC 类型定义 (用于 Node.js 环境)
+export interface RTCSessionDescriptionInit {
+  type: RTCSdpType;
+  sdp?: string;
+}
+
+export type RTCSdpType = 'answer' | 'offer' | 'pranswer' | 'rollback';
+
+export interface RTCIceCandidateInit {
+  candidate?: string;
+  sdpMLineIndex?: number | null;
+  sdpMid?: string | null;
+  usernameFragment?: string | null;
+}
+
 export interface ServerToClientEvents {
   // 消息事件
   message: (_data: MessageWrapper) => void;
@@ -70,4 +85,24 @@ export interface ChatPayload {
   type: string;
   receiverId: string;
   data: string;
+}
+
+export interface OfferPayload {
+  receiverId: string;
+  offer: RTCSessionDescriptionInit;
+}
+
+export interface AnswerPayload {
+  receiverId: string;
+  answer: RTCSessionDescriptionInit;
+}
+
+export interface IceCandidatePayload {
+  receiverId: string;
+  candidate: RTCIceCandidateInit;
+}
+
+export interface CallControlPayload {
+  receiverId: string;
+  action: 'accept' | 'reject' | 'hangup';
 }
