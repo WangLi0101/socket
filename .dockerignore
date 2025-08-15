@@ -61,4 +61,3 @@ docs/
 # 其他
 .eslintrc*
 .prettierrc*
-tsconfig.json
