@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json ./
 
 # 安装依赖（包括开发依赖，构建时需要）
-RUN npm install 
+RUN npm install --include=dev
 
 # 复制源代码
 COPY . .
@@ -18,6 +18,9 @@ RUN npm list --depth=0
 
 # 构建应用
 RUN npm run build
+
+# 清理开发依赖，只保留生产依赖
+RUN npm prune --omit=dev
 
 # 设置环境变量
 ENV NODE_ENV=production
