@@ -1,22 +1,30 @@
+import { generateMessageId } from '@/utils/helpers';
+
 export interface Message {
   id: string;
   type: string;
   senderId: string;
   receiverId: string;
   data: string;
+  createTime: string;
 }
+export type MessagePayload = Omit<Message, 'id' | 'createTime'>;
 
 const messageMap = new Map<string, Message[]>();
 export const getConversationId = (id1: string, id2: string): string => {
   // 对两个ID进行排序，确保顺序一致性
   return [id1, id2].sort().join('_');
 };
-export const addMessage = (message: Message) => {
+export const addMessage = (message: MessagePayload) => {
   return new Promise(resolve => {
     const { senderId, receiverId } = message;
     const key = getConversationId(senderId, receiverId);
     const messages = messageMap.get(key) || [];
-    messages.push(message);
+    messages.push({
+      ...message,
+      id: generateMessageId(),
+      createTime: new Date().toISOString(),
+    });
     messageMap.set(key, messages);
     resolve(message);
   });

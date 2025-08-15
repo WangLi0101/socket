@@ -5,18 +5,21 @@
 import type { Server, Socket } from 'socket.io';
 import type {
   CallBack,
+  ChatPayload,
   ClientToServerEvents,
   InterServerEvents,
-  MessagePayload,
   MessageWrapper,
   ServerToClientEvents,
   SocketData,
 } from '@/types/socket.js';
-import { generateMessageId } from '../utils/helpers.js';
-import type { User } from '@/users/index.js';
-import { addUser, getUsers, updateOnlineStatus } from '@/users/index.js';
+import type { UserPayload } from '@/users/index.js';
+import {
+  addUser,
+  getUsers,
+  updateNewMessageStatus,
+  updateOnlineStatus,
+} from '@/users/index.js';
 import { addMessage, getMessages } from '@/message/index.js';
-import type { Message } from '@/message/index.js';
 
 type TypedSocket = Socket<
   ClientToServerEvents,
@@ -38,7 +41,7 @@ type TypedServer = Server<
 export function handleConnection(socket: TypedSocket, io: TypedServer): void {
   // 处理链接成功
   const { userName, userId } = socket.handshake.auth;
-  const user = { id: userId, userName, isOnline: true };
+  const user = { id: userId, userName };
   socket.data.userId = userId;
   socket.join(userId);
   handlerConnection(socket, user, io);
@@ -58,7 +61,7 @@ function setupMessageHandlers(socket: TypedSocket, _io: TypedServer): void {
       const { type, payload } = data;
       switch (type) {
         case 'chat':
-          handlerChatMessage(socket, payload as MessagePayload, callback);
+          handlerChatMessage(socket, payload as ChatPayload, callback);
           break;
         case 'getUsers':
           handlerGetUsers(socket);
@@ -91,7 +94,11 @@ function setupDisconnectionHandler(socket: TypedSocket, io: TypedServer): void {
 /**
  * 处理连接
  */
-function handlerConnection(socket: TypedSocket, user: User, io: TypedServer) {
+function handlerConnection(
+  socket: TypedSocket,
+  user: UserPayload,
+  io: TypedServer,
+) {
   // 存储user
   addUser(socket.data.userId, user);
   // 通知其他客户端有新用户加入
@@ -117,17 +124,17 @@ function handlerDisconnection(socket: TypedSocket, _io: TypedServer) {
  */
 async function handlerChatMessage(
   socket: TypedSocket,
-  payload: MessagePayload,
+  payload: ChatPayload,
   callback?: CallBack,
 ) {
   const { receiverId, ...data } = payload;
-  const message: Message = {
-    id: generateMessageId(),
-    senderId: socket.data.userId,
+  const message = {
     receiverId,
+    senderId: socket.data.userId,
     ...data,
   };
   await addMessage(message);
+  updateNewMessageStatus(receiverId, true);
   const messageWrapper: MessageWrapper = {
     type: 'chat',
     payload: message,
@@ -154,6 +161,7 @@ function handlerGetUsers(socket: TypedSocket) {
  */
 async function handlerGetMessages(socket: TypedSocket, userId: string) {
   const messages = await getMessages(socket.data.userId, userId);
+  updateNewMessageStatus(userId, false);
   socket.emit('message', {
     type: 'getMessages',
     payload: messages,

@@ -66,7 +66,7 @@ export interface ConnectionInfo {
   totalConnections: number;
 }
 
-export interface MessagePayload {
+export interface ChatPayload {
   type: string;
   receiverId: string;
   data: string;
