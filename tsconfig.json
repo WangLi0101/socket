@@ -2,8 +2,8 @@
   "compilerOptions": {
     /* 语言和环境 */
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
-    "module": "ESNext",
+    "lib": ["ES2022"],
+    "module": "CommonJS",
     "moduleResolution": "node",
 
     /* 打包器模式 */

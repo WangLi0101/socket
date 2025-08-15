@@ -15,15 +15,15 @@ import type {
   OfferPayload,
   ServerToClientEvents,
   SocketData,
-} from '@/types/socket.js';
-import type { UserPayload } from '@/users/index.js';
+} from '../types/socket';
+import type { UserPayload } from '../users/index';
 import {
   addUser,
   getUsers,
   updateNewMessageStatus,
   updateOnlineStatus,
-} from '@/users/index.js';
-import { addMessage, getMessages } from '@/message/index.js';
+} from '../users/index';
+import { addMessage, getMessages } from '../message/index';
 
 type TypedSocket = Socket<
   ClientToServerEvents,

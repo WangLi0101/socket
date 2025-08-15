@@ -62,4 +62,3 @@ docs/
 .eslintrc*
 .prettierrc*
 tsconfig.json
-rollup.config.js

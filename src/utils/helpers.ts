@@ -8,7 +8,7 @@ import type {
   MessageWrapper,
   NotificationPayload,
   SystemMessagePayload,
-} from '@/types/socket.js';
+} from '../types/socket';
 
 /**
  * 生成唯一的消息 ID

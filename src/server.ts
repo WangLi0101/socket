@@ -10,9 +10,9 @@ import type {
   InterServerEvents,
   ServerToClientEvents,
   SocketData,
-} from '@/types/socket.js';
-import { handleConnection } from './socket/socketHandlers.js';
-import { validateEnv } from './utils/helpers.js';
+} from './types/socket';
+import { handleConnection } from './socket/socketHandlers';
+import { validateEnv } from './utils/helpers';
 
 /**
  * 创建并配置 Socket.IO 服务器与 Express

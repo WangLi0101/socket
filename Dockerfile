@@ -7,11 +7,14 @@ WORKDIR /app
 # 复制 package.json
 COPY package.json ./
 
-# 安装依赖
-RUN npm install
+# 安装依赖（包括开发依赖，构建时需要）
+RUN npm install --include=dev
 
 # 复制源代码
 COPY . .
+
+# 检查安装的包
+RUN npm list --depth=0
 
 # 构建应用
 RUN npm run build

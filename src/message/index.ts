@@ -1,4 +1,4 @@
-import { generateMessageId } from '@/utils/helpers';
+import { generateMessageId } from '../utils/helpers';
 
 export interface Message {
   id: string;
